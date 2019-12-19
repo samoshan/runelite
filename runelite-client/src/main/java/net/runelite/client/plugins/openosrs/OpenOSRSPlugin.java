@@ -244,20 +244,6 @@ public class OpenOSRSPlugin extends Plugin
 		}
 	}
 
-	private void updatePlugins()
-	{
-		ConfigPanel.pluginList.forEach(listItem ->
-		{
-			if (listItem.getPluginType() == PluginType.GENERAL_USE || listItem.getPluginType() == PluginType.IMPORTANT)
-			{
-				return;
-			}
-
-			listItem.setColor(ConfigPanel.getColorByCategory(config, listItem.getPluginType()));
-			listItem.setHidden(ConfigPanel.getHiddenByCategory(config, listItem.getPluginType()));
-		});
-	}
-
 	private class openosrsKeyListener implements KeyListener
 	{
 		private int lastKeyCycle;
