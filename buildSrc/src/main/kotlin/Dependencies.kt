@@ -40,7 +40,7 @@ object Plugins {
     val testLogger = Pair("com.adarshr.test-logger", "2.0.0")
     val versions = Pair("com.github.ben-manes.versions", "0.27.0")
     val latestVersion = Pair("se.patrikerdes.use-latest-versions", "0.2.13")
-    val grgit = Pair("org.ajoberstar.grgit", "4.0.0-rc.1")
+    val grgit = Pair("org.ajoberstar.grgit", "4.0.0")
     val jarTest = Pair("com.github.hauner.jarTest", "1.0.1")
     val shadow = Pair("com.github.johnrengelman.shadow", "5.2.0")
 }
@@ -86,7 +86,8 @@ object Libraries {
         const val okhttp3 = "4.2.2"
         const val orangeExtensions = "1.0"
         const val petitparser = "2.2.0"
-        const val plexus = "3.3.0"
+        const val pf4j = "3.2.0"
+        const val pf4jUpdate = "2.2.0"
         const val rxjava = "2.2.14"
         const val rxrelay = "2.1.1"
         const val scribejava = "6.9.0"
@@ -158,7 +159,8 @@ object Libraries {
     const val okhttp3Webserver = "com.squareup.okhttp3:mockwebserver:${Versions.okhttp3}"
     const val orangeExtensions = "net.runelite:orange-extensions:${Versions.orangeExtensions}"
     const val petitparser = "com.github.petitparser:java-petitparser:${Versions.petitparser}"
-    const val plexus = "org.codehaus.plexus:plexus-utils:${Versions.plexus}"
+    const val pf4j = "org.pf4j:pf4j:${Versions.pf4j}"
+    const val pf4jUpdate = "org.pf4j:pf4j-update:${Versions.pf4jUpdate}"
     const val rxjava = "io.reactivex.rxjava2:rxjava:${Versions.rxjava}"
     const val rxrelay = "com.jakewharton.rxrelay2:rxrelay:${Versions.rxrelay}"
     const val scribejava = "com.github.scribejava:scribejava-apis:${Versions.scribejava}"

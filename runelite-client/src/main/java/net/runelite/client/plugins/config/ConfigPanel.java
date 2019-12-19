@@ -49,9 +49,11 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.stream.Collectors;
 import javax.inject.Singleton;
@@ -121,6 +123,7 @@ import net.runelite.client.ui.components.colorpicker.RuneliteColorPicker;
 import net.runelite.client.util.ColorUtil;
 import net.runelite.client.util.ImageUtil;
 import net.runelite.client.util.MiscUtils;
+import static net.runelite.client.util.SwingUtil.syncExec;
 import org.apache.commons.lang3.StringUtils;
 
 @Slf4j
@@ -150,6 +153,7 @@ public class ConfigPanel extends PluginPanel
 	private final ChatColorConfig chatColorConfig;
 	private final ColorPickerManager colorPickerManager;
 	public static final List<PluginListItem> pluginList = new ArrayList<>();
+	final Set<JPanel> sectionsCopy = new HashSet<>();
 
 	private final IconTextField searchBar = new IconTextField();
 	private final JPanel topPanel;
@@ -159,7 +163,7 @@ public class ConfigPanel extends PluginPanel
 	private boolean showingPluginList = true;
 	private int scrollBarPosition = 0;
 
-	private static final ImmutableList<PluginType> definedOrder = ImmutableList.of(PluginType.IMPORTANT, PluginType.EXTERNAL, PluginType.PVM, PluginType.SKILLING, PluginType.PVP, PluginType.UTILITY, PluginType.GENERAL_USE);
+	private static final ImmutableList<PluginType> definedOrder = ImmutableList.of(PluginType.IMPORTANT, PluginType.PVM, PluginType.SKILLING, PluginType.PVP, PluginType.UTILITY, PluginType.MINIGAME, PluginType.MISCELLANEOUS, PluginType.EXTERNAL, PluginType.UNCATEGORIZED);
 	private static final Comparator<PluginListItem> categoryComparator = Comparator.comparing(plugin -> definedOrder.indexOf(plugin.getPluginType()));
 
 	static
@@ -283,14 +287,14 @@ public class ConfigPanel extends PluginPanel
 
 	private void initializePluginList()
 	{
-		final List<String> pinnedPlugins = getPinnedPluginNames();
+		final List<String> pinnedPlugins =  getPinnedPluginNames();
 
 		// set OpenOSRS config on top, as it should always have been
 		final PluginListItem openosrs = new PluginListItem(this, configManager, OpenOSRSConfig,
 			configManager.getConfigDescriptor(OpenOSRSConfig),
 			OPENOSRS_PLUGIN, "OpenOSRS client settings", PluginType.IMPORTANT, "client");
 		openosrs.setPinned(pinnedPlugins.contains(OPENOSRS_PLUGIN));
-		openosrs.nameLabel.setForeground(Color.WHITE);
+		openosrs.nameLabel.setForeground(getColorByCategory(OpenOSRSConfig, PluginType.IMPORTANT));
 		pluginList.add(openosrs);
 
 		// set RuneLite config on top, as it should always have been
@@ -298,7 +302,7 @@ public class ConfigPanel extends PluginPanel
 			configManager.getConfigDescriptor(runeLiteConfig),
 			RUNELITE_PLUGIN, "RuneLite client settings", PluginType.IMPORTANT, "client");
 		runeLite.setPinned(pinnedPlugins.contains(RUNELITE_PLUGIN));
-		runeLite.nameLabel.setForeground(Color.WHITE);
+		runeLite.nameLabel.setForeground(getColorByCategory(OpenOSRSConfig, PluginType.IMPORTANT));
 		pluginList.add(runeLite);
 
 		// populate pluginList with all vanilla RL plugins
@@ -306,28 +310,52 @@ public class ConfigPanel extends PluginPanel
 		pluginManager.getPlugins().stream()
 			.filter(plugin -> !plugin.getClass().getAnnotation(PluginDescriptor.class).hidden())
 			.forEach(plugin ->
-				{
-					final PluginDescriptor descriptor = plugin.getClass().getAnnotation(PluginDescriptor.class);
-					final Config config = pluginManager.getPluginConfigProxy(plugin);
-					final ConfigDescriptor configDescriptor = config == null ? null : configManager.getConfigDescriptor(config);
-
-					final PluginListItem listItem = new PluginListItem(this, configManager, plugin, descriptor, config, configDescriptor);
-					listItem.setPinned(pinnedPlugins.contains(listItem.getName()));
-					listItem.setColor(getColorByCategory(OpenOSRSConfig, listItem.getPluginType()));
-					listItem.setHidden(getHiddenByCategory(OpenOSRSConfig, listItem.getPluginType()));
-					plugins.add(listItem);
-				}
+				plugins.add(createPluginListItem(plugin, pinnedPlugins))
 			);
 
 		final PluginListItem chatColor = new PluginListItem(this, configManager, chatColorConfig,
 			configManager.getConfigDescriptor(chatColorConfig),
-			CHAT_COLOR_PLUGIN, "Recolor chat text", PluginType.GENERAL_USE, "colour", "messages");
+			CHAT_COLOR_PLUGIN, "Recolor chat text", PluginType.MISCELLANEOUS, "colour", "messages");
 		chatColor.setPinned(pinnedPlugins.contains(CHAT_COLOR_PLUGIN));
+		chatColor.nameLabel.setForeground(getColorByCategory(OpenOSRSConfig, PluginType.MISCELLANEOUS));
 		plugins.add(chatColor);
 
 		pluginList.addAll(plugins);
 
 		ConfigPanel.sortPluginList(OpenOSRSConfig, null);
+	}
+
+	PluginListItem createPluginListItem(Plugin plugin, List<String> pinnedPlugins)
+	{
+		final PluginDescriptor descriptor = plugin.getClass().getAnnotation(PluginDescriptor.class);
+		final Config config = pluginManager.getPluginConfigProxy(plugin);
+		final ConfigDescriptor configDescriptor = config == null ? null : configManager.getConfigDescriptor(config);
+
+		final PluginListItem listItem = new PluginListItem(this, configManager, plugin, descriptor, config, configDescriptor);
+		listItem.setPinned(pinnedPlugins.contains(listItem.getName()));
+		listItem.setColor(getColorByCategory(OpenOSRSConfig, listItem.getPluginType()));
+
+		return listItem;
+	}
+
+	void removePlugin(Plugin plugin)
+	{
+		pluginList.removeIf(pluginListItem -> pluginListItem.getPlugin() == plugin);
+	}
+
+	void addPlugin(Plugin plugin)
+	{
+		try
+		{
+			syncExec(() -> {
+				pluginList.add(createPluginListItem(plugin, getPinnedPluginNames()));
+				ConfigPanel.sortPluginList(OpenOSRSConfig, null);
+			});
+		}
+		catch (InvocationTargetException | InterruptedException e)
+		{
+			e.printStackTrace();
+		}
 	}
 
 	void refreshPluginList()
@@ -376,28 +404,139 @@ public class ConfigPanel extends PluginPanel
 
 		pluginList.forEach(mainPanel::remove);
 
+		sectionsCopy.forEach(mainPanel::remove);
+		sectionsCopy.clear();
+
 		showMatchingPlugins(true, text);
 		showMatchingPlugins(false, text);
 
 		revalidate();
 	}
 
+	private JPanel addSection(String name)
+	{
+		final MinimumSizedPanel section = new MinimumSizedPanel();
+		section.setLayout(new BoxLayout(section, BoxLayout.Y_AXIS));
+		section.setMinimumSize(new Dimension(PANEL_WIDTH, 0));
+
+		JPanel item = new JPanel();
+		item.setLayout(new BorderLayout());
+		item.setMinimumSize(new Dimension(PANEL_WIDTH, 0));
+
+		JLabel headerLabel = new JLabel(name);
+		headerLabel.setFont(FontManager.getRunescapeFont());
+		headerLabel.setForeground(ColorScheme.BRAND_BLUE);
+		headerLabel.setPreferredSize(new Dimension(PANEL_WIDTH, (int) headerLabel.getPreferredSize().getHeight()));
+
+		final boolean state = Boolean.parseBoolean(configManager.getConfiguration("pluginlist", name));
+
+		final IconButton collapse = new IconButton(state ? SECTION_RETRACT_ICON : SECTION_EXPAND_ICON);
+		collapse.setHoverIcon(state ? SECTION_RETRACT_ICON_HOVER : SECTION_EXPAND_ICON_HOVER);
+		collapse.setToolTipText(state ? "Retract" : "Expand");
+		collapse.setPreferredSize(new Dimension(20, 20));
+		collapse.setFont(collapse.getFont().deriveFont(16.0f));
+		collapse.setBorder(null);
+		collapse.setMargin(new Insets(0, 0, 0, 0));
+		headerLabel.setBorder(new EmptyBorder(0, 10, 0, 0));
+
+		item.add(collapse, BorderLayout.WEST);
+		item.add(headerLabel, BorderLayout.CENTER);
+
+		final JPanel sectionContents = new JPanel();
+		sectionContents.setLayout(new DynamicGridLayout(0, 1, 0, 5));
+		sectionContents.setMinimumSize(new Dimension(PANEL_WIDTH, 0));
+		sectionContents.setBorder(new EmptyBorder(OFFSET, 5, 0, 0));
+		section.add(item, BorderLayout.NORTH);
+		section.add(sectionContents, BorderLayout.SOUTH);
+
+		sectionContents.setVisible(state);
+
+		// Add listeners to each part of the header so that it's easier to toggle them
+		final MouseAdapter adapter = new MouseAdapter()
+		{
+			@Override
+			public void mouseClicked(MouseEvent e)
+			{
+				toggleSection("pluginlist", name, collapse, sectionContents);
+			}
+		};
+		collapse.addActionListener(e -> toggleSection("pluginlist", name, collapse, sectionContents));
+		headerLabel.addMouseListener(adapter);
+
+		// Allow for sub-sections
+		mainPanel.add(section);
+		sectionsCopy.add(section);
+
+		return sectionContents;
+	}
+
+	private void generatePluginList(List<PluginListItem> pluginListItems)
+	{
+		final Map<String, JPanel> sections = new HashMap<>();
+
+		for (PluginListItem pluginListItem : pluginListItems)
+		{
+			if (pluginListItem.isPinned())
+			{
+				if (!sections.containsKey("Pinned"))
+				{
+					sections.put("Pinned", addSection("Pinned"));
+				}
+
+				sections.get("Pinned").add(pluginListItem);
+				continue;
+			}
+
+			String sectionName = pluginListItem.getPluginType().getName();
+
+			if (!sections.containsKey(sectionName))
+			{
+				sections.put(sectionName, addSection(sectionName));
+			}
+
+			sections.get(sectionName).add(pluginListItem);
+
+		}
+	}
+
 	private void showMatchingPlugins(boolean pinned, String text)
 	{
+		final List<PluginListItem> plugins = new ArrayList<>();
+
 		if (text.isEmpty())
 		{
-			pluginList.stream().filter(item -> pinned == item.isPinned() && !item.isHidden()).forEach(mainPanel::add);
-			return;
+			if (OpenOSRSConfig.pluginSortMode() == net.runelite.client.config.OpenOSRSConfig.SortStyle.ALPHABETICALLY || !OpenOSRSConfig.enableCategories())
+			{
+				pluginList.stream().filter(item -> pinned == item.isPinned() && !item.isHidden()).forEach(mainPanel::add);
+			}
+			else
+			{
+				pluginList.stream().filter(item -> pinned == item.isPinned() && !item.isHidden()).forEach(plugins::add);
+			}
+		}
+		else
+		{
+			final String[] searchTerms = text.toLowerCase().split(" ");
+			pluginList.forEach(listItem ->
+			{
+				if (pinned == listItem.isPinned() && listItem.matchesSearchTerms(searchTerms) && !listItem.isHidden())
+				{
+					if (OpenOSRSConfig.pluginSortMode() == net.runelite.client.config.OpenOSRSConfig.SortStyle.ALPHABETICALLY || !OpenOSRSConfig.enableCategories())
+					{
+						mainPanel.add(listItem);
+					}
+					else
+					{
+						plugins.add(listItem);
+					}
+				}
+			});
 		}
 
-		final String[] searchTerms = text.toLowerCase().split(" ");
-		pluginList.forEach(listItem ->
+		if (OpenOSRSConfig.pluginSortMode() == net.runelite.client.config.OpenOSRSConfig.SortStyle.CATEGORY && OpenOSRSConfig.enableCategories())
 		{
-			if (pinned == listItem.isPinned() && listItem.matchesSearchTerms(searchTerms) && !listItem.isHidden())
-			{
-				mainPanel.add(listItem);
-			}
-		});
+			generatePluginList(plugins);
+		}
 	}
 
 	private Boolean parse(ConfigItem item, String value)
@@ -444,6 +583,21 @@ public class ConfigPanel extends PluginPanel
 		button.setIcon(newState ? SECTION_RETRACT_ICON : SECTION_EXPAND_ICON);
 		button.setHoverIcon(newState ? SECTION_RETRACT_ICON_HOVER : SECTION_EXPAND_ICON_HOVER);
 		configManager.setConfiguration(cd.getGroup().value(), cs.keyName(), newState);
+		button.setToolTipText(newState ? "Retract" : "Expand");
+		SwingUtilities.invokeLater(() ->
+		{
+			contents.revalidate();
+			contents.repaint();
+		});
+	}
+
+	private void toggleSection(String group, String key, IconButton button, JPanel contents)
+	{
+		boolean newState = !contents.isVisible();
+		contents.setVisible(newState);
+		button.setIcon(newState ? SECTION_RETRACT_ICON : SECTION_EXPAND_ICON);
+		button.setHoverIcon(newState ? SECTION_RETRACT_ICON_HOVER : SECTION_EXPAND_ICON_HOVER);
+		configManager.setConfiguration(group, key, newState);
 		button.setToolTipText(newState ? "Retract" : "Expand");
 		SwingUtilities.invokeLater(() ->
 		{
@@ -1390,7 +1544,6 @@ public class ConfigPanel extends PluginPanel
 		{
 			return new Dimension(PANEL_WIDTH, super.getPreferredSize().height);
 		}
-
 	}
 
 	private void reloadPluginlist(PluginListItem listItem, Config config, ConfigDescriptor cd)
@@ -1400,10 +1553,13 @@ public class ConfigPanel extends PluginPanel
 
 	public static Color getColorByCategory(OpenOSRSConfig openOSRSConfig, PluginType pluginType)
 	{
+		if (!openOSRSConfig.enabledColors())
+		{
+			return Color.LIGHT_GRAY;
+		}
+
 		switch (pluginType)
 		{
-			case EXTERNAL:
-				return openOSRSConfig.externalColor();
 			case PVM:
 				return openOSRSConfig.pvmColor();
 			case PVP:
@@ -1412,38 +1568,15 @@ public class ConfigPanel extends PluginPanel
 				return openOSRSConfig.skillingColor();
 			case UTILITY:
 				return openOSRSConfig.utilityColor();
+			case MISCELLANEOUS:
+				return openOSRSConfig.miscellaneousColor();
+			case MINIGAME:
+				return openOSRSConfig.minigameColor();
+			case IMPORTANT:
+				return Color.WHITE;
 		}
 
-		return null;
-	}
-
-	public static boolean getHiddenByCategory(OpenOSRSConfig openOSRSConfig, PluginType pluginType)
-	{
-		if (pluginType == PluginType.IMPORTANT || pluginType == PluginType.GENERAL_USE)
-		{
-			return false;
-		}
-
-		if (openOSRSConfig.hidePlugins())
-		{
-			return true;
-		}
-
-		switch (pluginType)
-		{
-			case EXTERNAL:
-				return openOSRSConfig.hideExternalPlugins();
-			case PVM:
-				return openOSRSConfig.hidePvmPlugins();
-			case PVP:
-				return openOSRSConfig.hidePvpPlugins();
-			case SKILLING:
-				return openOSRSConfig.hideSkillingPlugins();
-			case UTILITY:
-				return openOSRSConfig.hideUtilityPlugins();
-		}
-
-		return false;
+		return Color.LIGHT_GRAY;
 	}
 
 	public static void sortPluginList(OpenOSRSConfig openOSRSConfig, Comparator<PluginListItem> comparator)

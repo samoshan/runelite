@@ -29,6 +29,7 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.EventQueue;
 import java.awt.Font;
 import java.awt.Frame;
 import java.awt.Image;
@@ -39,6 +40,7 @@ import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
+import java.lang.reflect.InvocationTargetException;
 import java.util.Enumeration;
 import java.util.concurrent.Callable;
 import java.util.function.BiConsumer;
@@ -104,6 +106,7 @@ public class SwingUtil
 		UIManager.put("FormattedTextField.selectionForeground", Color.WHITE);
 		UIManager.put("TextArea.selectionBackground", ColorScheme.BRAND_BLUE_TRANSPARENT);
 		UIManager.put("TextArea.selectionForeground", Color.WHITE);
+		UIManager.put("TextArea.inactiveBackground", ColorScheme.DARKER_GRAY_COLOR);
 		UIManager.put("ProgressBar.background", ColorScheme.BRAND_BLUE_TRANSPARENT.darker());
 		UIManager.put("ProgressBar.foreground", ColorScheme.BRAND_BLUE);
 		UIManager.put("ProgressBar.selectionBackground", ColorScheme.BRAND_BLUE);
@@ -454,6 +457,18 @@ public class SwingUtil
 			//TODO : SUPPORT CUSTOM FONT?
 			//SwingUtil.setFont(FontManager.getFontOrDefault(config.clientFont()));
 			SwingUtil.setFont(FontManager.getRunescapeFont());
+		}
+	}
+
+	public static void syncExec(final Runnable r) throws InvocationTargetException, InterruptedException
+	{
+		if (EventQueue.isDispatchThread())
+		{
+			r.run();
+		}
+		else
+		{
+			EventQueue.invokeAndWait(r);
 		}
 	}
 }

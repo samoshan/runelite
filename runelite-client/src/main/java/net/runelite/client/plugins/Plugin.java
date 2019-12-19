@@ -36,9 +36,12 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import net.runelite.client.eventbus.AccessorGenerator;
 import net.runelite.client.eventbus.EventBus;
+import net.runelite.client.eventbus.EventScheduler;
 import net.runelite.client.eventbus.Subscription;
+import net.runelite.client.eventbus.Subscribe;
+import org.pf4j.ExtensionPoint;
 
-public abstract class Plugin implements Module
+public abstract class Plugin implements Module, ExtensionPoint
 {
 	private Set<Subscription> annotatedSubscriptions = null;
 

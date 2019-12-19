@@ -61,7 +61,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Provider;
 import javax.inject.Singleton;
-import javax.swing.SwingUtilities;
+import javax.swing.JOptionPane;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.client.RuneLite;
@@ -78,6 +78,7 @@ import net.runelite.client.task.ScheduledMethod;
 import net.runelite.client.task.Scheduler;
 import net.runelite.client.ui.RuneLiteSplashScreen;
 import net.runelite.client.util.GameEventManager;
+import static net.runelite.client.util.SwingUtil.syncExec;
 
 @Singleton
 @Slf4j
@@ -239,16 +240,21 @@ public class PluginManager
 
 			loaded++;
 
-			RuneLiteSplashScreen.stage(.80, 1, "Starting plugins", loaded, scannedPlugins.size());
+			RuneLiteSplashScreen.stage(.80, .90, "Starting plugins", loaded, scannedPlugins.size());
 		}
 
 		log.debug("Started {}/{} plugins in {}", started, loaded, timer);
 	}
 
-	@SuppressWarnings("unchecked")
 	List<Plugin> scanAndInstantiate(ClassLoader classLoader, String packageName) throws IOException
 	{
-		RuneLiteSplashScreen.stage(.59, "Loading plugins");
+		return scanAndInstantiate(classLoader, packageName, false);
+	}
+
+	@SuppressWarnings("unchecked")
+	List<Plugin> scanAndInstantiate(ClassLoader classLoader, String packageName, boolean external) throws IOException
+	{
+		RuneLiteSplashScreen.stage(.61, "Loading plugins");
 		MutableGraph<Class<? extends Plugin>> graph = GraphBuilder
 			.directed()
 			.build();
@@ -276,6 +282,12 @@ public class PluginManager
 			{
 				log.warn("Class {} has plugin descriptor, but is not a plugin",
 					clazz);
+				continue;
+			}
+
+			if (external && pluginDescriptor.type() != PluginType.EXTERNAL)
+			{
+				log.error("Class {} is using the legacy external plugin loader but doesn't have PluginType.EXTERNAL", clazz);
 				continue;
 			}
 
@@ -339,7 +351,7 @@ public class PluginManager
 
 					loaded.getAndIncrement();
 
-					RuneLiteSplashScreen.stage(.60, .70, "Loading plugins", loaded.get(), scannedPlugins.size());
+					RuneLiteSplashScreen.stage(.65, .75, "Loading plugins", loaded.get(), scannedPlugins.size());
 				})));
 			curGroup.forEach(future ->
 			{
@@ -371,7 +383,7 @@ public class PluginManager
 		try
 		{
 			// plugins always start in the event thread
-			SwingUtilities.invokeAndWait(() ->
+			syncExec(() ->
 			{
 				try
 				{
@@ -400,6 +412,17 @@ public class PluginManager
 		}
 		catch (InterruptedException | InvocationTargetException | IllegalArgumentException ex)
 		{
+			try
+			{
+				syncExec(() ->
+				{
+					JOptionPane.showMessageDialog(null, plugin.getClass().getSimpleName() + " could not be loaded, it's probably outdated.", "Error", JOptionPane.ERROR_MESSAGE);
+				});
+			}
+			catch (InvocationTargetException | InterruptedException e)
+			{
+				e.printStackTrace();
+			}
 			throw new PluginInstantiationException(ex);
 		}
 
@@ -408,7 +431,7 @@ public class PluginManager
 
 	public synchronized boolean stopPlugin(Plugin plugin) throws PluginInstantiationException
 	{
-		if (!activePlugins.contains(plugin) || isPluginEnabled(plugin))
+		if (!activePlugins.contains(plugin))
 		{
 			return false;
 		}
@@ -420,7 +443,7 @@ public class PluginManager
 			unschedule(plugin);
 
 			// plugins always stop in the event thread
-			SwingUtilities.invokeAndWait(() ->
+			syncExec(() ->
 			{
 				try
 				{
@@ -462,8 +485,7 @@ public class PluginManager
 			return Boolean.parseBoolean(value);
 		}
 
-		final PluginDescriptor pluginDescriptor = plugin.getClass().getAnnotation(PluginDescriptor.class);
-		return pluginDescriptor == null || pluginDescriptor.enabledByDefault();
+		return true;
 	}
 
 	@SuppressWarnings("unchecked")
