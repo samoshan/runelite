@@ -3,4 +3,4 @@ jdk:
 install:
   - echo "Welcome to OpenOSRS JitPack"
   - chmod a+x ./gradlew
-  - ./gradlew clean build publishToMavenLocal -x test
+  - ./gradlew clean build :runescape-api:publishToMavenLocal :runelite-api:publishToMavenLocal :injected-client:publishToMavenLocal :runelite-client:publishToMavenLocal :http-api:publishToMavenLocal :runescape-client:publishToMavenLocal :runelite-mixins:publishToMavenLocal :deobfuscator:publishToMavenLocal :cache:publishToMavenLocal -x test
