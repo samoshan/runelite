@@ -237,11 +237,6 @@ class ExternalPluginManager
 		}
 	}
 
-	public org.pf4j.PluginManager getExternalPluginManager()
-	{
-		return externalPluginManager;
-	}
-
 	public void startExternalUpdateManager()
 	{
 		try
@@ -674,23 +669,6 @@ class ExternalPluginManager
 		externalPluginManager.disablePlugin(pluginId);
 
 		return true;
-	}
-
-	public void reload(String pluginId)
-	{
-		Path pluginPath = stopPlugin(pluginId);
-
-		if (pluginPath == null)
-		{
-			return;
-		}
-
-		externalPluginManager.stopPlugin(pluginId);
-		externalPluginManager.unloadPlugin(pluginId);
-
-		pluginId = externalPluginManager.loadPlugin(pluginPath);
-		externalPluginManager.startPlugin(pluginId);
-		loadPlugin(pluginId);
 	}
 
 	public void update()
