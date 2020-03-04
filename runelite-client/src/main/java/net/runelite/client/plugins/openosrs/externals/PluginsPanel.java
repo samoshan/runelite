@@ -646,8 +646,6 @@ public class PluginsPanel extends JPanel
 			@Override
 			public void mousePressed(MouseEvent e)
 			{
-				System.out.println("You clicked the button wow");
-
 				reload.setIcon(null);
 				reload.setText("Reloading");
 

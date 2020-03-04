@@ -796,7 +796,7 @@ class ExternalPluginManager
 
 		pluginId = externalPluginManager.loadPlugin(pluginPath);
 		externalPluginManager.startPlugin(pluginId);
-		loadPlugin(pluginId);
+		startPlugins(loadPlugin(pluginId), true, false);
 	}
 
 	public void update()
