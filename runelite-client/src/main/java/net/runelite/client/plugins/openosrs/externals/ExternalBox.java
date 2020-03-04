@@ -23,6 +23,7 @@ public class ExternalBox extends JPanel
 
 	PluginInfo pluginInfo;
 	JLabel install = new JLabel();
+	JLabel reload = new JLabel();
 	JMultilineLabel description = new JMultilineLabel();
 
 	ExternalBox(String name, URL url)
@@ -61,6 +62,7 @@ public class ExternalBox extends JPanel
 		titleActions.setBackground(ColorScheme.DARKER_GRAY_COLOR);
 
 		titleActions.add(install, BorderLayout.EAST);
+		titleActions.add(reload, BorderLayout.WEST);
 
 		titleWrapper.add(title, BorderLayout.CENTER);
 		titleWrapper.add(titleActions, BorderLayout.EAST);

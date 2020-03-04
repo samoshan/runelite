@@ -44,6 +44,8 @@ import net.runelite.client.util.DeferredDocumentChangedListener;
 import net.runelite.client.util.ImageUtil;
 import net.runelite.client.util.SwingUtil;
 import org.apache.commons.text.similarity.JaroWinklerDistance;
+import org.pf4j.PluginDescriptor;
+import org.pf4j.PluginWrapper;
 import org.pf4j.update.PluginInfo;
 import org.pf4j.update.UpdateManager;
 import org.pf4j.update.UpdateRepository;
@@ -59,6 +61,8 @@ public class PluginsPanel extends JPanel
 	private static final ImageIcon DELETE_HOVER_ICON;
 	private static final ImageIcon DELETE_ICON_GRAY;
 	private static final ImageIcon DELETE_HOVER_ICON_GRAY;
+	private static final ImageIcon RELOAD_ICON;
+	private static final ImageIcon RELOAD_HOVER_ICON;
 
 	static
 	{
@@ -80,6 +84,13 @@ public class PluginsPanel extends JPanel
 
 		DELETE_ICON_GRAY = new ImageIcon(ImageUtil.grayscaleImage(deleteImg));
 		DELETE_HOVER_ICON_GRAY = new ImageIcon(ImageUtil.alphaOffset(ImageUtil.grayscaleImage(deleteImg), 0.53f));
+
+		final BufferedImage reloadIcon =
+				ImageUtil.recolorImage(
+						ImageUtil.getResourceStreamFromClass(PluginsPanel.class, "reload_icon.png"), ColorScheme.BRAND_BLUE
+				);
+		RELOAD_ICON = new ImageIcon(reloadIcon);
+		RELOAD_HOVER_ICON = new ImageIcon(ImageUtil.alphaOffset(reloadIcon, 0.53f));
 	}
 
 	private final ExternalPluginManager externalPluginManager;
@@ -91,8 +102,10 @@ public class PluginsPanel extends JPanel
 	private final JPanel filterwrapper = new JPanel(new BorderLayout(0, 10));
 	private final List<PluginInfo> installedPluginsList = new ArrayList<>();
 	private final List<PluginInfo> availablePluginsList = new ArrayList<>();
+	private final List<PluginInfo> localPluginsList = new ArrayList<>();
 	private final JPanel installedPluginsPanel = new JPanel(new GridBagLayout());
 	private final JPanel availablePluginsPanel = new JPanel(new GridBagLayout());
+	private final JPanel localPluginsPanel = new JPanel(new GridBagLayout());
 
 	private JComboBox<String> filterComboBox;
 	private Set<String> deps;
@@ -113,6 +126,7 @@ public class PluginsPanel extends JPanel
 
 		mainTabPane.add("Installed", wrapContainer(installedPluginsPanel()));
 		mainTabPane.add("Available", wrapContainer(availablePluginsPanel()));
+		mainTabPane.add("Local", wrapContainer(localPluginsPanel()));
 
 		add(filterwrapper, BorderLayout.NORTH);
 		add(mainTabPane, BorderLayout.CENTER);
@@ -206,6 +220,16 @@ public class PluginsPanel extends JPanel
 		return availablePluginsContainer;
 	}
 
+	private JPanel localPluginsPanel()
+	{
+		JPanel localPluginsContainer = new JPanel();
+		localPluginsContainer.setLayout(new BorderLayout(0, 5));
+		localPluginsContainer.setBorder(new EmptyBorder(0, 10, 10, 10));
+		localPluginsContainer.add(localPluginsPanel, BorderLayout.CENTER);
+
+		return localPluginsContainer;
+	}
+
 	static boolean mismatchesSearchTerms(String search, PluginInfo pluginInfo)
 	{
 		final String[] searchTerms = search.toLowerCase().split(" ");
@@ -230,6 +254,7 @@ public class PluginsPanel extends JPanel
 			SwingUtil.syncExec(() -> {
 				this.installedPlugins();
 				this.availablePlugins();
+				this.localPlugins();
 			});
 
 		}
@@ -263,6 +288,7 @@ public class PluginsPanel extends JPanel
 
 		availablePluginsList.clear();
 		installedPluginsList.clear();
+		localPluginsList.clear();
 
 		deps = externalPluginManager.getDependencies();
 
@@ -277,6 +303,24 @@ public class PluginsPanel extends JPanel
 				installedPluginsList.add(pluginInfo);
 			}
 		}
+
+		for (PluginWrapper p : externalPluginManager.getExternalPluginManager().getStartedPlugins())
+		{
+			if (plugins.stream().anyMatch(t -> t.id.equals(p.getPluginId()))) continue;
+
+			System.out.println("Identified local plugin: " + p.getPluginId());
+
+			PluginInfo pluginInfo = new PluginInfo();
+			PluginDescriptor d = p.getDescriptor();
+
+			pluginInfo.id = d.getPluginId();
+			pluginInfo.name = d.getPluginId() + " " + d.getVersion();
+			pluginInfo.description = d.getPluginDescription();
+			pluginInfo.projectUrl = "local";
+
+			localPluginsList.add(pluginInfo);
+		}
+		localPluginsList.sort(Comparator.naturalOrder());
 	}
 
 	private void onExternalPluginChanged(ExternalPluginChanged externalPluginChanged)
@@ -448,6 +492,38 @@ public class PluginsPanel extends JPanel
 		}
 	}
 
+	private void localPlugins()
+	{
+		GridBagConstraints c = new GridBagConstraints();
+
+		localPluginsPanel.removeAll();
+		String search = searchBar.getText();
+
+		for (PluginInfo pluginInfo : localPluginsList)
+		{
+			if (!search.equals("") && mismatchesSearchTerms(search, pluginInfo))
+			{
+				continue;
+			}
+
+			ExternalBox pluginBox = new ExternalBox(pluginInfo);
+			pluginBox.pluginInfo = pluginInfo;
+
+			c.fill = GridBagConstraints.HORIZONTAL;
+			c.weightx = 1.0;
+			c.gridy += 1;
+			c.insets = new Insets(5, 0, 0, 0);
+
+			pluginReloadButton(pluginBox.reload, pluginInfo);
+			localPluginsPanel.add(pluginBox, c);
+		}
+
+		if (localPluginsPanel.getComponents().length < 1)
+		{
+			localPluginsPanel.add(titleLabel("No local plugins found"));
+		}
+	}
+
 
 	private void pluginInstallButton(JLabel install, PluginInfo pluginInfo, boolean installed, boolean hideAction)
 	{
@@ -558,6 +634,40 @@ public class PluginsPanel extends JPanel
 				}
 
 				install.setIcon(installed ? hideAction ? DELETE_ICON_GRAY : DELETE_ICON : ADD_ICON);
+			}
+		});
+	}
+
+	private void pluginReloadButton(JLabel reload, PluginInfo pluginInfo)
+	{
+		reload.setIcon(RELOAD_ICON);
+		reload.setToolTipText("Reload");
+
+		reload.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mousePressed(MouseEvent e)
+			{
+				System.out.println("You clicked the button wow");
+
+				reload.setIcon(null);
+				reload.setText("Reloading");
+
+				executor.submit(() -> {
+					externalPluginManager.reload(pluginInfo.id);
+					reload.setText("");
+				});
+			}
+
+			@Override
+			public void mouseEntered(MouseEvent e)
+			{
+				reload.setIcon(RELOAD_HOVER_ICON);
+			}
+
+			@Override
+			public void mouseExited(MouseEvent e)
+			{
+				reload.setIcon(RELOAD_ICON);
 			}
 		});
 	}
