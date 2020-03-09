@@ -126,6 +126,7 @@ public class PluginsPanel extends JPanel
 		mainTabPane.add("Installed", wrapContainer(installedPluginsPanel()));
 		mainTabPane.add("Available", wrapContainer(availablePluginsPanel()));
 		mainTabPane.add("Local", wrapContainer(localPluginsPanel()));
+		mainTabPane.setSelectedIndex(2);
 
 		add(filterwrapper, BorderLayout.NORTH);
 		add(mainTabPane, BorderLayout.CENTER);
@@ -326,6 +327,11 @@ public class PluginsPanel extends JPanel
 	{
 		String pluginId = externalPluginChanged.getPluginId();
 		Optional<Component> externalBox;
+
+		if (localPluginsList.stream().anyMatch(x -> x.id.equals(pluginId)))
+		{
+			return;
+		}
 
 		if (externalPluginChanged.isAdded())
 		{
