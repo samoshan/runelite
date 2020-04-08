@@ -1072,7 +1072,7 @@ public class ExternalPluginManager
 
 		pluginId = externalPluginManager.loadPlugin(pluginPath);
 		externalPluginManager.startPlugin(pluginId);
-		startPlugins(loadPlugin(pluginId), true, false);
+		scanAndInstantiate(loadPlugin(pluginId), true, false);
 	}
 
 	public void update()
