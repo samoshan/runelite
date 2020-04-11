@@ -381,6 +381,21 @@ public interface RSClient extends RSGameShell, Client
 	@Override
 	int[] getWidgetPositionsY();
 
+	@Import("mouseCam")
+	boolean isMouseCam();
+
+	@Import("camAngleDX")
+	int getCamAngleDX();
+
+	@Import("camAngleDX")
+	void setCamAngleDX(int angle);
+
+	@Import("camAngleDY")
+	int getCamAngleDY();
+
+	@Import("camAngleDY")
+	void setCamAngleDY(int angle);
+
 	@Import("itemContainers")
 	RSNodeHashTable getItemContainers();
 
@@ -1164,4 +1179,7 @@ public interface RSClient extends RSGameShell, Client
 
 	@Import("draggedWidgetY")
 	int getDraggedWidgetY();
+
+	@Import("changedSkills")
+	int[] getChangedSkillLevels();
 }
