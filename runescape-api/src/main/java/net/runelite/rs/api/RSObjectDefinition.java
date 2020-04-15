@@ -32,4 +32,8 @@ public interface RSObjectDefinition extends ObjectDefinition
 	@Import("transform")
 	@Override
 	RSObjectDefinition getImpostor();
+
+	@Import("blocksProjectile")
+	@Override
+	boolean blocksProjectile();
 }

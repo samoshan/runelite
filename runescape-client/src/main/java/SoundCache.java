@@ -186,7 +186,7 @@ public class SoundCache {
 					GrandExchangeOfferWorldComparator.scene.removeBoundaryObject(var0, var2, var3);
 					var13 = WorldMapSection2.getObjectDefinition(var39);
 					if (var13.interactType != 0) {
-						Client.collisionMaps[var0].method3635(var2, var3, var40, var41, var13.boolean1);
+						Client.collisionMaps[var0].method3635(var2, var3, var40, var41, var13.blocksProjectile);
 					}
 				}
 
@@ -202,7 +202,7 @@ public class SoundCache {
 					}
 
 					if (var13.interactType != 0) {
-						Client.collisionMaps[var0].setFlagOffNonSquare(var2, var3, var13.sizeX, var13.sizeY, var41, var13.boolean1);
+						Client.collisionMaps[var0].setFlagOffNonSquare(var2, var3, var13.sizeX, var13.sizeY, var41, var13.blocksProjectile);
 					}
 				}
 
@@ -286,7 +286,7 @@ public class SoundCache {
 
 						var42.method3187(var0, var2, var3, var23, 1, 1, (Entity)var29, 0, var26, var28);
 						if (var15.interactType != 0) {
-							var14.addGameObject(var2, var3, var16, var17, var15.boolean1);
+							var14.addGameObject(var2, var3, var16, var17, var15.blocksProjectile);
 						}
 					} else if (var6 == 0) {
 						if (var15.animationId == -1 && var15.transforms == null) {
@@ -297,7 +297,7 @@ public class SoundCache {
 
 						var42.newBoundaryObject(var0, var2, var3, var23, (Entity)var29, (Entity)null, Tiles.field544[var5], 0, var26, var28);
 						if (var15.interactType != 0) {
-							var14.method3630(var2, var3, var6, var5, var15.boolean1);
+							var14.method3630(var2, var3, var6, var5, var15.blocksProjectile);
 						}
 					} else if (var6 == 1) {
 						if (var15.animationId == -1 && var15.transforms == null) {
@@ -308,7 +308,7 @@ public class SoundCache {
 
 						var42.newBoundaryObject(var0, var2, var3, var23, (Entity)var29, (Entity)null, Tiles.field542[var5], 0, var26, var28);
 						if (var15.interactType != 0) {
-							var14.method3630(var2, var3, var6, var5, var15.boolean1);
+							var14.method3630(var2, var3, var6, var5, var15.blocksProjectile);
 						}
 					} else {
 						int var35;
@@ -326,7 +326,7 @@ public class SoundCache {
 
 							var42.newBoundaryObject(var0, var2, var3, var23, (Entity)var30, (Entity)var31, Tiles.field544[var5], Tiles.field544[var35], var26, var28);
 							if (var15.interactType != 0) {
-								var14.method3630(var2, var3, var6, var5, var15.boolean1);
+								var14.method3630(var2, var3, var6, var5, var15.blocksProjectile);
 							}
 						} else if (var6 == 3) {
 							if (var15.animationId == -1 && var15.transforms == null) {
@@ -337,7 +337,7 @@ public class SoundCache {
 
 							var42.newBoundaryObject(var0, var2, var3, var23, (Entity)var29, (Entity)null, Tiles.field542[var5], 0, var26, var28);
 							if (var15.interactType != 0) {
-								var14.method3630(var2, var3, var6, var5, var15.boolean1);
+								var14.method3630(var2, var3, var6, var5, var15.blocksProjectile);
 							}
 						} else if (var6 == 9) {
 							if (var15.animationId == -1 && var15.transforms == null) {
@@ -348,7 +348,7 @@ public class SoundCache {
 
 							var42.method3187(var0, var2, var3, var23, 1, 1, (Entity)var29, 0, var26, var28);
 							if (var15.interactType != 0) {
-								var14.addGameObject(var2, var3, var16, var17, var15.boolean1);
+								var14.addGameObject(var2, var3, var16, var17, var15.blocksProjectile);
 							}
 						} else if (var6 == 4) {
 							if (var15.animationId == -1 && var15.transforms == null) {
@@ -431,7 +431,7 @@ public class SoundCache {
 					}
 
 					if (var15.interactType != 0) {
-						var14.addGameObject(var2, var3, var16, var17, var15.boolean1);
+						var14.addGameObject(var2, var3, var16, var17, var15.blocksProjectile);
 					}
 				}
 			}

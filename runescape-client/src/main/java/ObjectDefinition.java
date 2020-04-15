@@ -98,8 +98,8 @@ public class ObjectDefinition extends DualNode {
 	@Export("interactType")
 	public int interactType;
 	@ObfuscatedName("l")
-	@Export("boolean1")
-	public boolean boolean1;
+	@Export("blocksProjectile")
+	public boolean blocksProjectile;
 	@ObfuscatedName("r")
 	@ObfuscatedGetter(
 		intValue = -1367724563
@@ -274,7 +274,7 @@ public class ObjectDefinition extends DualNode {
 		this.sizeX = 1;
 		this.sizeY = 1;
 		this.interactType = 2;
-		this.boolean1 = true;
+		this.blocksProjectile = true;
 		this.int1 = -1;
 		this.clipType = -1;
 		this.nonFlatShading = false;
@@ -394,9 +394,9 @@ public class ObjectDefinition extends DualNode {
 			this.sizeY = var1.readUnsignedByte();
 		} else if (var2 == 17) {
 			this.interactType = 0;
-			this.boolean1 = false;
+			this.blocksProjectile = false;
 		} else if (var2 == 18) {
-			this.boolean1 = false;
+			this.blocksProjectile = false;
 		} else if (var2 == 19) {
 			this.int1 = var1.readUnsignedByte();
 		} else if (var2 == 21) {

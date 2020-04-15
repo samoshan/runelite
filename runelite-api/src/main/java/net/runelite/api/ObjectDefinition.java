@@ -73,4 +73,6 @@ public interface ObjectDefinition
 	 * @throws NullPointerException if {@link #getImpostorIds()} is null
 	 */
 	ObjectDefinition getImpostor();
+
+	boolean blocksProjectile();
 }

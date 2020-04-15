@@ -212,7 +212,7 @@ public class WorldMapSection2 implements WorldMapSection {
 			var1.postDecode();
 			if (var1.isSolid) {
 				var1.interactType = 0;
-				var1.boolean1 = false;
+				var1.blocksProjectile = false;
 			}
 
 			ObjectDefinition.ObjectDefinition_cached.put(var1, (long)var0);

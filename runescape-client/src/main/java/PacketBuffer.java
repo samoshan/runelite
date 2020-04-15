@@ -273,7 +273,7 @@ public class PacketBuffer extends Buffer {
 					}
 
 					if (var8.interactType != 0 && var7 != null) {
-						var7.addGameObject(var1, var2, var9, var10, var8.boolean1);
+						var7.addGameObject(var1, var2, var9, var10, var8.blocksProjectile);
 					}
 
 				} else if (var5 == 0) {
@@ -327,7 +327,7 @@ public class PacketBuffer extends Buffer {
 					}
 
 					if (var8.interactType != 0 && var7 != null) {
-						var7.method3630(var1, var2, var5, var4, var8.boolean1);
+						var7.method3630(var1, var2, var5, var4, var8.blocksProjectile);
 					}
 
 					if (var8.int2 != 16) {
@@ -355,7 +355,7 @@ public class PacketBuffer extends Buffer {
 					}
 
 					if (var8.interactType != 0 && var7 != null) {
-						var7.method3630(var1, var2, var5, var4, var8.boolean1);
+						var7.method3630(var1, var2, var5, var4, var8.blocksProjectile);
 					}
 
 				} else {
@@ -398,7 +398,7 @@ public class PacketBuffer extends Buffer {
 						}
 
 						if (var8.interactType != 0 && var7 != null) {
-							var7.method3630(var1, var2, var5, var4, var8.boolean1);
+							var7.method3630(var1, var2, var5, var4, var8.blocksProjectile);
 						}
 
 						if (var8.int2 != 16) {
@@ -426,7 +426,7 @@ public class PacketBuffer extends Buffer {
 						}
 
 						if (var8.interactType != 0 && var7 != null) {
-							var7.method3630(var1, var2, var5, var4, var8.boolean1);
+							var7.method3630(var1, var2, var5, var4, var8.blocksProjectile);
 						}
 
 					} else if (var5 == 9) {
@@ -438,7 +438,7 @@ public class PacketBuffer extends Buffer {
 
 						var6.method3187(var0, var1, var2, var16, 1, 1, (Entity)var34, 0, var19, var21);
 						if (var8.interactType != 0 && var7 != null) {
-							var7.addGameObject(var1, var2, var9, var10, var8.boolean1);
+							var7.addGameObject(var1, var2, var9, var10, var8.blocksProjectile);
 						}
 
 						if (var8.int2 != 16) {
@@ -540,7 +540,7 @@ public class PacketBuffer extends Buffer {
 				}
 
 				if (var8.interactType != 0 && var7 != null) {
-					var7.addGameObject(var1, var2, var9, var10, var8.boolean1);
+					var7.addGameObject(var1, var2, var9, var10, var8.blocksProjectile);
 				}
 
 			}
